@@ -83,7 +83,9 @@ const TodoItemsView = (todoController, rootElement) => {
             removeMe();
         } );
 
+        //Bidirectional binding
         todo.onTextChanged(() => inputElement.value = todo.getText());
+        inputElement.onchange = () => todo.setText(inputElement.value);
 
         rootElement.appendChild(deleteButton);
         rootElement.appendChild(inputElement);
