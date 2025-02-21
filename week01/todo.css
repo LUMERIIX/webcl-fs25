@@ -40,3 +40,8 @@ button.delete {
     color:              red;
     font-size:          1.3rem;
 }
+
+.input_invalid {
+    border-color:   red;
+    border-width:   1px 1px 1px 1px !important;
+}

@@ -4,16 +4,22 @@
 
 const TodoController = () => {
 
+    const formatText = text => text.trim().toUpperCase();
+    const validateText = text => text.length > 10;
+
     const Todo = () => {                                // facade
-        const textAttr = Observable("text");            // we currently don't expose it as we don't use it elsewhere
+        const textAttr = Observable("TEXT");            // we currently don't expose it as we don't use it elsewhere
         const doneAttr = Observable(false);
+        const validAttr = Observable(true);
         return {
             getDone:       doneAttr.getValue,
             setDone:       doneAttr.setValue,
             onDoneChanged: doneAttr.onChange,
-            setText:       textAttr.setValue,
+            setText:       text => { textAttr.setValue(formatText(text)); validAttr.setValue(validateText(text)); },
             getText:       textAttr.getValue,
             onTextChanged: textAttr.onChange,
+            onValidChanged: validAttr.onChange,
+            valid:          validAttr.getValue
         }
     };
 
@@ -86,6 +92,8 @@ const TodoItemsView = (todoController, rootElement) => {
         //Bidirectional binding
         todo.onTextChanged(() => inputElement.value = todo.getText());
         inputElement.onchange = () => todo.setText(inputElement.value);
+
+        todo.onValidChanged(() => { console.log('valid value has changed', todo.valid()); todo.valid() ? inputElement.classList.remove('input_invalid') : inputElement.classList.add('input_invalid'); });
 
         rootElement.appendChild(deleteButton);
         rootElement.appendChild(inputElement);
