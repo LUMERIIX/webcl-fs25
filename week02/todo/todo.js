@@ -1,25 +1,27 @@
-// requires ../observable/observable.js
-// requires ./fortuneService.js
-// requires ../dataflow/dataflow.js
+import { ObservableList } from "../observable/observable.js";
+import { Attribute }      from "../presentationModel/presentationModel.js";
+import { Scheduler }      from "../dataflow/dataflow.js";
+import { fortuneService } from "./fortuneService.js";
+
+export { TodoController, TodoItemsView, TodoTotalView, TodoOpenView}
 
 const TodoController = () => {
 
-    const formatText = text => text.trim().toUpperCase();
-    const validateText = text => text.length > 10;
+    const Todo = () => {                               // facade
+        const textAttr = Attribute("text");
+        const doneAttr = Attribute(false);
 
-    const Todo = () => {                                // facade
-        const textAttr = Observable("TEXT");            // we currently don't expose it as we don't use it elsewhere
-        const doneAttr = Observable(false);
-        const validAttr = Observable(true);
+        textAttr.setConverter( input => input.toUpperCase() );
+        textAttr.setValidator( input => input.length >= 3   );
+
         return {
-            getDone:       doneAttr.getValue,
-            setDone:       doneAttr.setValue,
-            onDoneChanged: doneAttr.onChange,
-            setText:       text => { textAttr.setValue(formatText(text)); validAttr.setValue(validateText(text)); },
-            getText:       textAttr.getValue,
-            onTextChanged: textAttr.onChange,
-            onValidChanged: validAttr.onChange,
-            valid:          validAttr.getValue
+            getDone:            doneAttr.valueObs.getValue,
+            setDone:            doneAttr.valueObs.setValue,
+            onDoneChanged:      doneAttr.valueObs.onChange,
+            getText:            textAttr.valueObs.getValue,
+            setText:            textAttr.setConvertedValue,
+            onTextChanged:      textAttr.valueObs.onChange,
+            onTextValidChanged: textAttr.validObs.onChange,
         }
     };
 
@@ -40,22 +42,23 @@ const TodoController = () => {
         newTodo.setText('...');
 
         scheduler.add( ok =>
-           fortuneService( text => {        // schedule the fortune service and proceed when done
+           fortuneService( text => {
                    newTodo.setText(text);
                    ok();
                }
            )
         );
+
     };
 
     return {
-        numberOfTodos:            todoModel.count,
-        numberOfOpenTasks:        () => todoModel.countIf(todo => ! todo.getDone() ),
-        addTodo:                  addTodo,
-        addFortuneTodo:           addFortuneTodo,
-        removeTodo:               todoModel.del,
-        onTodoAdd:                todoModel.onAdd,
-        onTodoRemove:             todoModel.onDel,
+        numberOfTodos:      todoModel.count,
+        numberOfopenTasks:  () => todoModel.countIf( todo => ! todo.getDone() ),
+        addTodo:            addTodo,
+        addFortuneTodo:     addFortuneTodo,
+        removeTodo:         todoModel.del,
+        onTodoAdd:          todoModel.onAdd,
+        onTodoRemove:       todoModel.onDel,
         removeTodoRemoveListener: todoModel.removeDeleteListener, // only for the test case, not used below
     }
 };
@@ -71,7 +74,7 @@ const TodoItemsView = (todoController, rootElement) => {
             const template = document.createElement('DIV'); // only for parsing
             template.innerHTML = `
                 <button class="delete">&times;</button>
-                <input type="text" size="42">
+                <input type="text" size="10">
                 <input type="checkbox">            
             `;
             return template.children;
@@ -89,11 +92,15 @@ const TodoItemsView = (todoController, rootElement) => {
             removeMe();
         } );
 
-        //Bidirectional binding
-        todo.onTextChanged(() => inputElement.value = todo.getText());
-        inputElement.onchange = () => todo.setText(inputElement.value);
+        inputElement.oninput = _ => todo.setText(inputElement.value);
 
-        todo.onValidChanged(() => { console.log('valid value has changed', todo.valid()); todo.valid() ? inputElement.classList.remove('input_invalid') : inputElement.classList.add('input_invalid'); });
+        todo.onTextChanged(() => inputElement.value = todo.getText());
+
+        todo.onTextValidChanged(
+            valid => valid
+              ? inputElement.classList.remove("invalid")
+              : inputElement.classList.add("invalid")
+        );
 
         rootElement.appendChild(deleteButton);
         rootElement.appendChild(inputElement);
@@ -110,7 +117,7 @@ const TodoItemsView = (todoController, rootElement) => {
 const TodoTotalView = (todoController, numberOfTasksElement) => {
 
     const render = () =>
-        numberOfTasksElement.textContent = "" + todoController.numberOfTodos();
+        numberOfTasksElement.innerText = "" + todoController.numberOfTodos();
 
     // binding
 
@@ -121,7 +128,7 @@ const TodoTotalView = (todoController, numberOfTasksElement) => {
 const TodoOpenView = (todoController, numberOfOpenTasksElement) => {
 
     const render = () =>
-        numberOfOpenTasksElement.textContent = "" + todoController.numberOfOpenTasks();
+        numberOfOpenTasksElement.innerText = "" + todoController.numberOfopenTasks();
 
     // binding
 
@@ -131,5 +138,3 @@ const TodoOpenView = (todoController, numberOfOpenTasksElement) => {
     });
     todoController.onTodoRemove(render);
 };
-
-
