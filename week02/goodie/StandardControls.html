@@ -7,12 +7,12 @@
         .inputs {
             display: grid;
             grid-template-columns: max-content max-content;
-            gap: .3rlh 1rem;
-            max-inline-size: 60ch;
+            gap: .3rlh 1rem; /* r=bezug auf root element; lh=lineheight; em=breite von m (klein) */
+            max-inline-size: 60ch; /* max-width 60 (normalized) characters (mostly zero-character) */
             margin-inline: auto;
         }
         :invalid {
-            box-shadow: 0 0 1em 0 black;
+            border: 1px solid red;
         }
     </style>
     <script>
