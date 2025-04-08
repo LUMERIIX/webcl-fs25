@@ -8,23 +8,22 @@
           background:   #1f1f56;
       }
       main {
-        perspective: 200vmax; /* 2xVMAX */
-        perspective-origin: center top;
+          perspective-origin: center top;
+          perspective:  200vmax;
       }
       main .starwars {
-          transform: rotateX(45deg);
           transform-origin: center top;
           padding:          2em;
           color:            lightgoldenrodyellow;
           background-color: rgba(255, 255, 255, .3);
-          overflow: clip;
+          overflow:         clip;
       }
       main .starwars > * {
-        transform: translateY(-15rlh);
-        transition: transform 3s linear;
-        @starting-style{
-            transform: translateY(0);
-        }
+          transform: translateY(-15rlh);
+          transition: transform 8s linear;
+          @starting-style {
+              transform: translateY(0);
+          }
       }
       input[type=range] {
           margin-top:       2em;
@@ -55,9 +54,9 @@
 <script>
     const starwars = document.querySelector(".starwars");
     const range    = document.getElementById("range");
-    range.oninput = _evt => {
-        starwars.style.transform = `rotateX(${range.value}deg)`;
-    };
+    //transform:        rotateX(45deg);
+    range.oninput = _evt => starwars.style.setProperty("transform","rotateX("+range.value+"deg)");
+
 </script>
 
 </body>
